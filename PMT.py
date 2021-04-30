@@ -44,7 +44,7 @@ def are_connected(K,V,W,s1,s2):
                     if path1 == [s1] or path2 == [s2]:
                         
                         #print("Path from {} to {} via the subpaths {} and {}.".format(
-                            s1,s2,path1,path2))
+                            #s1,s2,path1,path2))
                         
                         
                         return True
@@ -53,7 +53,7 @@ def are_connected(K,V,W,s1,s2):
                     elif len(path1[1])==k and len(path2[1])==k+2:
                     
                         #print("WE have a path from {} to {} via the subpaths {} and {}.".format(
-                            s1,s2,path1,path2))
+                            #s1,s2,path1,path2))
                         
                         return True
            
