@@ -1,4 +1,4 @@
-# ParametricMorseTheory
+# Parametric Morse Theory
 
 Luca Nyckees
 
