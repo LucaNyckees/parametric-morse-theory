@@ -11,4 +11,6 @@ in the **Laboratory for Topology and Neuroscience** at EPFL.
 
 More precisely, we follow a simple pipeline based on two main methods. The first method is an algorithm designed to extend a node labeling g on a graph G to a discrete Morse function f on the clique completion K (a simplicial complex) of G. The algorithm is designed in the paper *Persistent homology of unweighted complex networks via discrete Morse theory*. The second method is a way of creating a particular set of node labelings on G at various time slices that encodes, in some sense, the evolution of geometric properties of the graph G by means of spectral theory tools (we use the eigenvectors of the graph Laplacian of G).
 
+The overall simplified pipeline is illustrated below.
+
 <img width="436" alt="my_pipeline" src="https://user-images.githubusercontent.com/55453275/116779268-a15c2c00-aa75-11eb-9aa2-f23e3d39c01d.png">
