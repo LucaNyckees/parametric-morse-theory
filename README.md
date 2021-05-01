@@ -1,6 +1,6 @@
 # ParametricMorseTheory
 
-Author : Luca Nyckees
+Luca Nyckees
 
 ### Context
 
@@ -10,3 +10,5 @@ in the **Laboratory for Topology and Neuroscience** at EPFL.
 ### Description of the project
 
 More precisely, we follow a simple pipeline based on two main methods. The first method is an algorithm designed to extend a node labeling g on a graph G to a discrete Morse function f on the clique completion K (a simplicial complex) of G. The algorithm is designed in the paper *Persistent homology of unweighted complex networks via discrete Morse theory*. The second method is a way of creating a particular set of node labelings on G at various time slices that encodes, in some sense, the evolution of geometric properties of the graph G by means of spectral theory tools (we use the eigenvectors of the graph Laplacian of G).
+
+![plot](./Desktop/Semester Project MA2/my_pipeline.png)
