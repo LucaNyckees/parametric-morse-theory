@@ -25,7 +25,6 @@ The CODE folder contains files where all the pipeline is implemented, as well as
 
 The overall simplified pipeline is illustrated below.
 
-<img width="436" alt="my_pipeline" src="https://user-images.githubusercontent.com/55453275/116779268-a15c2c00-aa75-11eb-9aa2-f23e3d39c01d.png">
 <img width="436" alt="my_pipeline" src="https://raw.githubusercontent.com/LucaNyckees/ParametricMorseTheory/main/project_pipeline.png">
 
 ### Some useful references
