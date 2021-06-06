@@ -27,6 +27,12 @@ The overall simplified pipeline is illustrated below.
 
 <img width="436" alt="my_pipeline" src="https://raw.githubusercontent.com/LucaNyckees/ParametricMorseTheory/main/project_pipeline.png">
 
+### Stability analysis
+
+We further investigate the overall stability of the process outputting parametric diagrams. More precisely, we introduce specific distances and study the impact a perturbation on the initial sampling process has on the final output. We illustrate this in the figure below.
+
+<img width="436" alt="my_pipeline" src="https://raw.githubusercontent.com/LucaNyckees/ParametricMorseTheory/main/stability_analysis.png">
+
 ### Some useful references
 * [1] https://www.emis.de/journals/SLC/wpapers/s48forman.pdf
 * [2] https://www.nature.com/articles/s41598-019-50202-3
