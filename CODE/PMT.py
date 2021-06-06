@@ -83,282 +83,142 @@ def are_connected(K,V,W,s1,s2):
            
     return False
 
-        
-def connecting_critical_cells(G,C=[],V=[]):
-    
-    """
-    + COMPLETE DMT ANALYSIS OF G
-    + Returns the list of pairs of critical cells for f_i and f_j that are connected,
-    for all indices i and j, as 4-tuples (alpha,beta,i,j) indicating the time slices.
-    If no C and V are given as input, it deals with G via the spectral theory principle.
-    Else, it considers a time-series with Morse theory characteristics given by C and V.
-    """
-    
-    all_connected_pairs = []
-    
-    if C!=[] and V!=[]:
-        
-        for i in range(len(C)):
-            print("At time slice {}, K has critical cells {}.\n".format(i,C[i]))
-            print("At time slice {}, K has gradient vector field {}.\n".format(i,V[i]))
-            print("----------------------------------------------------\n")
-        
-        K = gd.SimplexTree()
-        for e in G.edges:
-            K.insert(e)
-        for n in G.nodes:
-            K.insert([n])
-        
-        index = len(C)
-        
-    else:
-        
-        list_dmts = magic_function(G)
-
-        C = []
-        V = []
-
-        for i in range(len(list_dmts)):
-            K = list_dmts[i][0]
-            f = list_dmts[i][1]
-            C.append(critical_cells(K,f))
-            print("At time slice {}, K has critical cells {}.\n".format(i,C[i]))
-            V.append(gradient(K, f))
-            print("At time slice {}, K has gradient vector field {}.\n".format(i,V[i]))
-            print("----------------------------------------------------\n")
-            
-        index = len(list_dmts)
-        
-        
-    for i in range(index):
-        
-        for j in range(index):  
-        
-            for k in range(K.dimension()+1):
-                
-                if i!=j:
-                
-                    k_crit_i = [cell for cell in C[i] if len(cell)==k+1]
-                    k_crit_j = [cell for cell in C[j] if len(cell)==k+1]
-                
-                    for s1 in k_crit_i:
-                    
-                        for s2 in k_crit_j:
-                            
-                            if are_connected(K,V[i],V[j],s1,s2):
-                            
-                                all_connected_pairs.append([s1,s2,i,j])
-                            
-    print("All connected pairs of critical cells across time slices are : {}.\n".format(all_connected_pairs))
-    
-    return all_connected_pairs
 
 
-def life_coordinates_of_cell_at_i(K,s,C,V,i,all_connected_pairs):
+def parametric(K,V,C, drawing=False):
     
-    """
-    Args
-    - s is a simplex that is critical for gradient field V[i] (i.e. s in C[i])
-    - all_connected_pairs is as returned by connecting_critical_cells()
+    "Returns a list of birth-death coordinates of all critical cells appearing along the sequence of DVFs on K."
     
-    Determines whether s dies/is born at time i
-    """    
-    
-    dies_at_i = True
-    born_at_i = True
-    
-    if i != len(C)-1:
-    
-        for k in range(K.dimension()+1):
-            
-            k_crit_i_plus_1 = [cell for cell in C[i+1] if len(cell)==k+1]
-            
-            for s1 in k_crit_i_plus_1:
-                
-                if are_connected(K,V[i],V[i+1],s,s1)==True:
-                    
-                    if are_connected(K,V[i+1],V[i],s1,s)==True:
-                        
-                        dies_at_i = False
-                        
-                        break
-                    
-    elif i != len(C)-1 and s in C[i+1]:
-            
-        dies_at_ie = False
-                    
-    elif i == len(C)-1:
-        
-        dies_at_i = False
-                        
-    if i != 0:
-        
-        for k in range(K.dimension()+1):
-         
-            k_crit_i_minus_1 = [cell for cell in C[i-1] if len(cell)==k+1]
-                
-            for s1 in k_crit_i_minus_1:
-                    
-                if are_connected(K,V[i-1],V[i],s1,s)==True:
-                        
-                    if are_connected(K,V[i],V[i-1],s,s1)==True:
-                            
-                        born_at_i = False
-                        
-                        break
-                    
-    elif i != 0 and s in C[i-1]:
-            
-        born_at_i = False
-                
-    elif i==0:
-        
-        born_at_i = False
-        
-    
-    #print("Death : {}\n Birth : {}\n for i = {}\n".format(dies_at_i,born_at_i,i))
-    return (dies_at_i,born_at_i)
-
-
-
-def life_coordinates_of_cell(K,s,C,V,i,all_connected_pairs):
-    
-    """
-    Args
-    - s is a simplex that is critical for gradient field V[i] (i.e. s in C[i])
-    - all_connected_pairs is as returned by connecting_critical_cells()
-    
-    Return the time of birth and death of cell s
-    """    
-    
-    time_slices = [i for i in range(len(C)) if s in C[i]]
-    
-    deaths = []
-    births = []
-    
-    for i in time_slices:
-        
-        if life_coordinates_of_cell_at_i(K,s,C,V,i,all_connected_pairs)[0]:
-            
-            deaths.append(i)
-            
-        if life_coordinates_of_cell_at_i(K,s,C,V,i,all_connected_pairs)[1]:   
-            
-            births.append(i)
-            
-    if deaths == []:
-        death = max(time_slices)
-    else:
-        death = max(deaths)
-        
-    if births == []:
-        birth = min(time_slices)
-    else:
-        birth = min(births)
-            
-    return (birth,death)
-    
-    
-
-
-
-def life_coordinates(G,C=[],V=[]):
-    
-    all_connected_pairs = []
-    
-    if C!=[] and V!=[]:
-        
-        for i in range(len(C)):
-            print("At time slice {}, K has critical cells {}.\n".format(i,C[i]))
-            print("At time slice {}, K has gradient vector field {}.\n".format(i,V[i]))
-            print("----------------------------------------------------\n")
-        
-        K = gd.SimplexTree()
-        for e in G.edges:
-            K.insert(e)
-        for n in G.nodes:
-            K.insert([n])
-        
-        index = len(C)
-        
-    else:
-        
-        list_dmts = magic_function(G)
-
-        C = []
-        V = []
-
-        for i in range(len(list_dmts)):
-            K = list_dmts[i][0]
-            f = list_dmts[i][1]
-            C.append(critical_cells(K,f))
-            print("At time slice {}, K has critical cells {}.\n".format(i,C[i]))
-            V.append(gradient(K, f))
-            print("At time slice {}, K has gradient vector field {}.\n".format(i,V[i]))
-            print("----------------------------------------------------\n")
-            
-        index = len(list_dmts)
-        
-        
-    for i in range(index):
-        
-        for j in range(index):  
-        
-            for k in range(K.dimension()+1):
-                
-                if i!=j:
-                
-                    k_crit_i = [cell for cell in C[i] if len(cell)==k+1]
-                    k_crit_j = [cell for cell in C[j] if len(cell)==k+1]
-                
-                    for s1 in k_crit_i:
-                    
-                        for s2 in k_crit_j:
-                            
-                            if are_connected(K,V[i],V[j],s1,s2):
-                            
-                                all_connected_pairs.append([s1,s2,i,j])
-                            
-    print("All connected pairs of critical cells across time slices are : {}.\n".format(all_connected_pairs))
-    
-    print("----------------------------------------------------\n")
+    temp_critical_cells = []
+    critical_cells = []
+    nb_slices = len(C)
     
     coordinates = []
+    full_coordinates = []
     
-    for i in range(index): 
+    for i in range(nb_slices):
+        for s in C[i]:
+            temp_critical_cells.append([s,i])
+            critical_cells.append([s,i])
+            
+    graph = abstract_diagram(K,V,C)
     
-        for k in range(K.dimension()+1):
+    for indexed_cell in critical_cells:
         
-            k_crit_i = [cell for cell in C[i] if len(cell)==k+1]
+        if indexed_cell in temp_critical_cells:
+            
+            for node_ in graph.nodes:
+                if graph.nodes[node_]['index']==indexed_cell:
+                    node = node_
+                    break
+                    
+            magic_path = diagram_path(graph,node,nb_slices)
+            time = indexed_cell[1]
+
+            if len(magic_path) == 1:
+
+                coordinates.append([time,time])
+                full_coordinates.append([indexed_cell[0],time,time])
+                cell = graph.nodes[node_]['index']
+                if cell in temp_critical_cells:
+                    temp_critical_cells.remove(cell)
+
+            else:
+
+                for cell in magic_path:
+                    index_cell_ = graph.nodes[cell]['index']
+                    if index_cell_ in temp_critical_cells:
+                        temp_critical_cells.remove(index_cell_)
+
+                coordinates.append([time,time+len(magic_path)-1])
+                full_coordinates.append([indexed_cell[0],time,time+len(magic_path)-1])
     
-            for s in k_crit_i:
-                
-                l = life_coordinates_of_cell(K,s,C,V,i,all_connected_pairs)
-                
-                b = l[0]
-                d = l[1]
-                
-                # 3-tuples (simplex, birth, death)
+    if drawing:
+        nx.draw(graph)
+    
+    return [coordinates,full_coordinates]
+
         
-                coordinates.append([s,b,d])
+def per_time_slice(graph,i):
+    
+    slice_nodes = [node for node in list(graph.nodes) if graph.nodes[node]['index'][1]==i]
+    
+    return slice_nodes
     
     
-    return coordinates
+    
+
+def abstract_diagram(K,V,C):
+    
+    critical_cells = []
+    
+    for i in range(len(C)):
+        for s in C[i]:
+            critical_cells.append([s,i])
+            
+    N = len(critical_cells)
+    
+    graph = nx.DiGraph()
+    node = 1
+    for cell in critical_cells:
+        graph.add_node(node, index=cell)
+        node+=1
+    
+    for node1 in range(1,N+1):
+        for node2 in range(1,N+1):   
+            
+            i = graph.nodes[node1]['index'][1]
+            j = graph.nodes[node2]['index'][1]
+                
+            if j-i==1:
+
+                s1 = graph.nodes[node1]['index'][0]
+                s2 = graph.nodes[node2]['index'][0]
+
+                if are_connected(K,V[i],V[j],s1,s2) and are_connected(K,V[j],V[i],s2,s1):
+
+                    graph.add_edge(node1,node2)
+    
+    return graph
 
 
-def plot_BD_barcode(coordinates):
+
+def diagram_path(graph,node,nb_slices):
     
+    path = [node]
+    temp_node = node
     
-    cells = [str(trio[0]) for trio in coordinates]
-    births = [str(trio[1]) for trio in coordinates]
+    for i in range(nb_slices):
+        
+        slice_nodes = per_time_slice(graph,i+1)
+        
+        for next_node in slice_nodes:
+            
+            if (temp_node,next_node) in graph.edges:
+                
+                path.append(next_node)
+                temp_node = next_node
+                break
+                
+    return path
+
+
+def pipeline(G, functions = [], start = 0, time_step = 0.05, time_count = 12, noise=0.05):
     
-    plt.style.use('ggplot')
-    
-    plt.barh(cells,births)
-    plt.title('Life coordinates of critical cells')
-    plt.ylabel('Critical cells')
-    plt.xlabel('Life time')
-    plt.show()
+        list_dmts = magic_function(G, functions, start, time_step, time_count, noise)
+
+        C = []
+        V = []
+
+        for i in range(len(list_dmts)):
+            K = list_dmts[i][0]
+            f = list_dmts[i][1]
+            C.append(critical_cells(K,f))
+            V.append(gradient(K, f))
+        
+        return parametric(K,V,C)
+
+
 
 def plot_PD(coordinates):
 
@@ -383,86 +243,38 @@ def plot_PD(coordinates):
     life_0 = [(trio[1],trio[2]) for trio in coord_0]
     z = range(maximum+1)
 
-    multiplicities_0 = []
-
-    for i in range(N):
-
-        mult = life_0.count(life_0[i])
-        multiplicities_0.append(mult)
-        multiplicities_0[i]=multiplicities_0[i]**2+20
-        
-    colors_0 = [0.2 for i in range(N)]
-        
-    M = len(coord_1)
-    life_1 = [(trio[1],trio[2]) for trio in coord_1]
-
-    multiplicities_1 = []
-
-    for i in range(M):
-
-        mult = life_1.count(life_1[i])
-        multiplicities_1.append(mult)
-        multiplicities_1[i]=multiplicities_1[i]**2+20
-
-    colors_1 = [0.2 for i in range(M)]
-    
-    O = len(coord_2)
-    life_2 = [(trio[1],trio[2]) for trio in coord_2]
-
-    multiplicities_2 = []
-
-    for i in range(O):
-
-        mult = life_2.count(life_2[i])
-        multiplicities_2.append(mult)
-        multiplicities_2[i]=multiplicities_2[i]**2+20
-
-    colors_2 = [0.2 for i in range(O)]
-    
-    P = len(coord_3)
-    life_3 = [(trio[1],trio[2]) for trio in coord_3]
-
-    multiplicities_3 = []
-
-    for i in range(P):
-
-        mult = life_3.count(life_3[i])
-        multiplicities_3.append(mult)
-        multiplicities_3[i]=multiplicities_3[i]**2+20
-
-    colors_3 = [0.2 for i in range(P)]
 
     fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, sharex=True, sharey=True)
 
-    ax1.scatter(births_0, deaths_0, s=multiplicities_0, c=colors_0, alpha=0.5)
-    ax1.plot(z,z,'g')
+    ax1.scatter(births_0, deaths_0, color='skyblue', alpha=0.5)
+    ax1.plot(z,z,color='orange')
     ax1.set_title("0-cells")
-    ax2.scatter(births_1, deaths_1, s=multiplicities_1, c=colors_1, alpha=0.5)
-    ax2.plot(z,z,'g')
+    ax2.scatter(births_1, deaths_1, color='skyblue', alpha=0.5)
+    ax2.plot(z,z,color='orange')
     ax2.set_title("1-cells")
-    ax3.scatter(births_2, deaths_2, s=multiplicities_2, c=colors_2, alpha=0.5)
-    ax3.plot(z,z,'g')
+    ax3.scatter(births_2, deaths_2, color='skyblue', alpha=0.5)
+    ax3.plot(z,z,color='orange')
     ax3.set_title("2-cells")
-    ax4.scatter(births_3, deaths_3, s=multiplicities_3, c=colors_3, alpha=0.5)
-    ax4.plot(z,z,'g')
+    ax4.scatter(births_3, deaths_3, color='skyblue', alpha=0.5)
+    ax4.plot(z,z,color='orange')
     ax4.set_title("3-cells")
     fig.suptitle("Life coordinates of critical cells")
     
-    for i in range(N):
+    for i in range(len(coord_0)):
         
-        ax1.plot([births_0[i],births_0[i]],[births_0[i],deaths_0[i]],'r--')
+        ax1.plot([births_0[i],births_0[i]],[births_0[i],deaths_0[i]],'m--')
         
-    for i in range(M):
+    for i in range(len(coord_1)):
         
-        ax2.plot([births_1[i],births_1[i]],[births_1[i],deaths_1[i]],'r--')
+        ax2.plot([births_1[i],births_1[i]],[births_1[i],deaths_1[i]],'m--')
         
-    for i in range(O):
+    for i in range(len(coord_2)):
         
-        ax3.plot([births_2[i],births_2[i]],[births_2[i],deaths_2[i]],'r--')
+        ax3.plot([births_2[i],births_2[i]],[births_2[i],deaths_2[i]],'m--')
         
-    for i in range(P):
+    for i in range(len(coord_3)):
         
-        ax4.plot([births_3[i],births_3[i]],[births_3[i],deaths_3[i]],'r--')
+        ax4.plot([births_3[i],births_3[i]],[births_3[i],deaths_3[i]],'m--')
         
 
     plt.show()
