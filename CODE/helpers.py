@@ -6,71 +6,107 @@ from simplicial import *
 import gudhi as gd
 import json
 import sys
+from scipy.stats import bernoulli
+
+def stochastic_2block_model(n,p,q):
+    
+    if (n % 2) != 0:
+        print("Please take an even integer n.")
+        return 0
+    
+    G = nx.Graph()
+    G.add_nodes_from(range(n))
+    for i in range(int(n/2)):
+        for j in range(int(n/2)):
+            if i!=j and bernoulli.rvs(p):
+                G.add_edge(i,j)
+    for i in range(int(n/2),n):
+        for j in range(int(n/2),n):
+            if i!=j and bernoulli.rvs(p):
+                G.add_edge(i,j)
+    for i in range(int(n/2)):
+        for j in range(int(n/2),n):
+            if i!=j and bernoulli.rvs(q):
+                G.add_edge(i,j)
+    return G
+
+def stochastic_4block_model(n,p,q):
+    
+    if (n % 4) != 0:
+        print("Please take n as a multiple of 4.")
+        return 0
+    
+    G = nx.Graph()
+    G.add_nodes_from(range(n))
+    for i in range(int(n/4)):
+        for j in range(int(n/4)):
+            if i<j and bernoulli.rvs(p):
+                G.add_edge(i,j)
+    for i in range(int(n/4),int(n/2)):
+        for j in range(int(n/4),int(n/2)):
+            if i<j and bernoulli.rvs(p):
+                G.add_edge(i,j)
+    for i in range(int(n/2),int(3*n/4)):
+        for j in range(int(n/2),int(3*n/4)):
+            if i<j and bernoulli.rvs(p):
+                G.add_edge(i,j)
+    for i in range(int(3*n/4),int(n)):
+        for j in range(int(3*n/4),int(n)):
+            if i<j and bernoulli.rvs(p):
+                G.add_edge(i,j)
+    for i in range(n):
+        for j in range(n):
+            if i<j and bernoulli.rvs(q):
+                G.add_edge(i,j)
+    return G
 
 
-def build_series(G):
+
+def build_series(G, functions, start, time_step, time_count):
     
     """
-    This function returns a series of simplicial complexes that are built as clique 
-    complexes on a series of labeled graphs (labels based on spectral theory).
-    
-    Arguments:
-        G : unlabeled, undirected graph
-    """
-    
-    L_sparse = nx.linalg.laplacianmatrix.laplacian_matrix(G)
-    L = scipy.sparse.csr_matrix.toarray(L_sparse)
-    
-    # use scipy to compute first k eigen pairs (in case graph too big)
-    # think about ordering the eigen pairs (order on eigenvalues)
-    # add function : distr of eigenvalues (at what point are they insignificant?)
-    
-    w, v = LA.eig(L)
-    
-    graph_series = []
-    complex_series = []
-    
-    w_res = []
-    indices = []
-    count = -1
-    for i in w:
-        count += 1
-        if i not in w_res:
-            w_res.append(i)
-            indices.append(count)
-            
-    # taking out the multiplicities
-    
-    v_res = [v[i] for i in indices] 
-    
-    # sorting the eigenvalues in increasing order
-    
-    pairs = [[w_res[i],v_res[i]] for i in range(len(v_res))]
-    
-    pairs = sorted(pairs,key=lambda pairs: pairs[0])
-    
-    w_res = [pairs[i][0] for i in range(len(pairs))]
-    v_res = [pairs[i][1] for i in range(len(pairs))]
-
+    Args:
+        G : networkX.Graph(), a graph
+        functions : list of functions (one function for each node of G)
+        T : list of time slices (for which we sample the functions)
         
-    for i in indices:
-        st = gd.SimplexTree()
-        for e in G.edges:
-            st.insert(e)
-        for n in G.nodes:
-            st.insert([n])
-        st.expansion(3)
-        complex_series.append(st)
+    Returns:
+        This function returns a sequence of node labelings on K, where K is 
+        the clique complex built on the graph G (there is a node labeling 
+        for each time slice in T), put in the form of an array np.ndarray() 
+        of size |G| x |T|.
+    """
+    T = []
+    for i in range(int(time_count)):
+        T.append(start)
+        start += time_step
     
-    for i in range(len(indices)):
-        nodes = list(complex_series[i].get_skeleton(0))
+    n = G.number_of_nodes()
+    time_count = len(T)
+    
+    assert n == len(functions), "There has to be a function for each node."
+    
+    K = gd.SimplexTree()
+    for e in G.edges:
+        K.insert(e)
+    for n in G.nodes:
+        K.insert([n])
+    K.expansion(3)
+    
+    complex_series = []
+    complex_series += time_count * [K]
+    
+    for j in range(time_count):
+        
+        nodes = list(complex_series[j].get_skeleton(0))
+        
+        for i in range(n):
+            
+            complex_series[j].assign_filtration(nodes[i][0],functions[i](T[j])) 
 
-        for j in range(len(nodes)):
-            complex_series[i].assign_filtration(nodes[j][0],v_res[i][j])
-            
-            
     
     return complex_series
+
 
 def get_skel(K,p):
     
@@ -83,7 +119,7 @@ def get_skel(K,p):
     
 
 
-def build_morse_function(K,d,g):
+def build_morse_function(K,d,g,noise):
     
     """
     K : simplicial complex (gudhi.SimplexTree)
@@ -122,20 +158,20 @@ def build_morse_function(K,d,g):
                 Flag[gamma_0]=1
             
             else:
-                epsilon = np.random.uniform(low=0.0, high=0.5)
+                epsilon = np.random.uniform(low=0, high=noise)
                 f[str(simplex[0])] = f[gamma_0] + epsilon
     
     return [f, Flag]
 
 
-def magic_function(G): 
+def magic_function(G, functions, start, time_step, time_count, noise): 
     
     """
     Returns a list of pairs, of the form [... [S,f_i] ...] where f_i is a 
     discrete Morse function that is built on the simplicial complex S.
     """
     
-    series = build_series(G)
+    series = build_series(G, functions, start, time_step, time_count)
     
     list_g = []
     list_f = []
@@ -153,12 +189,13 @@ def magic_function(G):
     
     for i in range(len(series)):
         
-        f = build_morse_function(series[i], series[i].dimension(), list_g[i])[0]
+        f = build_morse_function(series[i], series[i].dimension(), list_g[i],noise)[0]
     
         list_f.append(f)
     
     list_pairs = [[series[i],list_f[i]] for i in range(len(series))]
     
-    print("We have a sequence of {} complexes.\n".format(len(series)))
+    #print("We have a sequence of {} complexes.\n".format(len(series)))
         
     return list_pairs
+
