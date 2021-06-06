@@ -17,7 +17,7 @@ Discrete Morse theory (DMT) is the discrete analog of smooth Morse theory, as de
 
 ### Description of the project
 
-More precisely, we follow a simple pipeline based on two main methods. The first method is an algorithm designed to extend a node labeling g on a graph G to a discrete Morse function f on the clique completion K (a simplicial complex) of G (*cf.* [2]). The algorithm is designed in the paper *Persistent homology of unweighted complex networks via discrete Morse theory*. The second method is a way of creating a particular set of node labelings on G at various time slices that encodes, in some sense, the evolution of geometric properties of the graph G by means of spectral theory tools (we use the eigenvectors of the graph Laplacian of G).
+More precisely, we follow a simple pipeline described here. We start from a graph G with a mapping that assigns a continuous real-valued function with real domain to each node in G. First, we apply clique completion to the graph G to obtain a simplicial complex K. Then, we go through a sampling process to get a real value on each vertex. This "real-valued node labeling" is extended to a discrete Morse function on the whole complex K (*cf.* [2]). The extension algorithm is designed in the paper *Persistent homology of unweighted complex networks via discrete Morse theory*. Finally, we plot the parametric diagrams of the resulting finite Morse parametrization. Those diagrams encode a lot of information on the time-related behavior of critical cells that appear along the sequence of discrete Morse functions.
 
 The overall simplified pipeline is illustrated below.
 
