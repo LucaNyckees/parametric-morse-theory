@@ -1,15 +1,8 @@
 import networkx as nx
-import numpy as np
-from numpy import linalg as LA
-import scipy
 from simplicial import *
-import gudhi as gd
 import matplotlib.pyplot as plt
-import json
-import sys
-import numpy as np
-from DMT import *
-from helpers import *
+from DMT import V_paths, critical_cells, gradient
+from helpers import get_skel, magic_function
 
 plt.rcParams["figure.figsize"] = (10, 10)
 
@@ -208,8 +201,6 @@ def plot_PD(coordinates):
     births_3 = [trio[1] for trio in coord_3]
     deaths_3 = [trio[2] for trio in coord_3]
 
-    N = len(coord_0)
-    life_0 = [(trio[1], trio[2]) for trio in coord_0]
     z = range(maximum + 1)
 
     fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, sharex=True, sharey=True)

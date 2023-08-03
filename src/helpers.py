@@ -1,11 +1,7 @@
 import networkx as nx
 import numpy as np
-from numpy import linalg as LA
-import scipy
 from simplicial import *
 import gudhi as gd
-import json
-import sys
 from scipy.stats import bernoulli
 
 
