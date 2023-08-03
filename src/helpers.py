@@ -4,55 +4,39 @@ import gudhi as gd
 from scipy.stats import bernoulli
 
 
-def stochastic_2block_model(n, p, q):
-    if (n % 2) != 0:
-        print("Please take an even integer n.")
-        return 0
+def add_stochastic_community(interval1: tuple[int, int], interval2: tuple[int, int], proba: float, G: nx.Graph) -> None:
+    for i in range(interval1[0], interval1[1]):
+        for j in range(interval2[0], interval2[1]):
+            if i < j and bernoulli.rvs(proba):
+                G.add_edge(i, j)
+
+
+def stochastic_block_model(n: int, p: float, q: float, k: int) -> nx.Graph:
+    """
+    Returns the planted partition model (https://en.wikipedia.org/wiki/Stochastic_block_model)
+    with parameters n, p, q and k defined as follows.
+
+    Args:
+        - n : number of nodes in the graph
+        - p : within-communities edge probability
+        - q : between-communities edge probability
+        - k : number of communities (blocks)
+    """
+    if (n % k) != 0 or not (0 <= p <= 1 and 0 <= q <= 1):
+        raise ValueError("n must be a multiple of k, and p and q must be in [0,1].")
 
     G = nx.Graph()
     G.add_nodes_from(range(n))
-    for i in range(int(n / 2)):
-        for j in range(int(n / 2)):
-            if i != j and bernoulli.rvs(p):
-                G.add_edge(i, j)
-    for i in range(int(n / 2), n):
-        for j in range(int(n / 2), n):
-            if i != j and bernoulli.rvs(p):
-                G.add_edge(i, j)
-    for i in range(int(n / 2)):
-        for j in range(int(n / 2), n):
-            if i != j and bernoulli.rvs(q):
-                G.add_edge(i, j)
-    return G
+    for i in range(k):  # i \in {0,...,k-1}
+        add_stochastic_community(interval1=(i, i + 1), interval2=(i, i + 1), proba=p, G=G)
 
-
-def stochastic_4block_model(n, p, q):
-    if (n % 4) != 0:
-        print("Please take n as a multiple of 4.")
-        return 0
-
-    G = nx.Graph()
-    G.add_nodes_from(range(n))
-    for i in range(int(n / 4)):
-        for j in range(int(n / 4)):
-            if i < j and bernoulli.rvs(p):
-                G.add_edge(i, j)
-    for i in range(int(n / 4), int(n / 2)):
-        for j in range(int(n / 4), int(n / 2)):
-            if i < j and bernoulli.rvs(p):
-                G.add_edge(i, j)
-    for i in range(int(n / 2), int(3 * n / 4)):
-        for j in range(int(n / 2), int(3 * n / 4)):
-            if i < j and bernoulli.rvs(p):
-                G.add_edge(i, j)
-    for i in range(int(3 * n / 4), int(n)):
-        for j in range(int(3 * n / 4), int(n)):
-            if i < j and bernoulli.rvs(p):
-                G.add_edge(i, j)
-    for i in range(n):
-        for j in range(n):
-            if i < j and bernoulli.rvs(q):
-                G.add_edge(i, j)
+    for c1 in range(k):
+        for c2 in range(k):
+            if c1 < c2:
+                add_stochastic_community(interval1=(c1 * n / k, (c1 + 1) * n / k),
+                                         interval2=(c2 * n / k, (c2 + 1) * n / k),
+                                         proba=q,
+                                         G=G)
     return G
 
 
