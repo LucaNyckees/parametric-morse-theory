@@ -1,17 +1,10 @@
 import networkx as nx
-import numpy as np
-from numpy import linalg as LA
-import scipy
-from simplicial import *
-import gudhi as gd
-import json
-import sys
-import matplotlib.pyplot as plt
-import numpy as np
+from scipy.stats import bernoulli
+from simplicial import life_coordinates
 
-from helpers import *
-from PMT import *
-from DMT import *
+# from helpers import *
+from parametric_morse_theory import plot_PD
+# from discrete_morse_theory import *
 
 
 G3 = nx.Graph()
@@ -145,8 +138,6 @@ print(coordinates)
 print(are_connected(K,V[6],V[7],[6],[5]))
 print(are_connected(K,V[7],V[6],[5],[6]))
 """
-
-from scipy.stats import bernoulli
 
 
 def stochastic_2block_model(n, p, q):

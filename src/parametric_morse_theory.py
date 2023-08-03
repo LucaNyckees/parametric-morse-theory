@@ -1,7 +1,6 @@
 import networkx as nx
-from simplicial import *
 import matplotlib.pyplot as plt
-from DMT import V_paths, critical_cells, gradient
+from discrete_morse_theory import V_paths, critical_cells, gradient
 from helpers import get_skel, magic_function
 
 plt.rcParams["figure.figsize"] = (10, 10)

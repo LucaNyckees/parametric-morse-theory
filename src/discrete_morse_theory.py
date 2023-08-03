@@ -1,7 +1,5 @@
 import networkx as nx
-from simplicial import *
 import json
-from helpers import *
 
 
 def check_Morse(K, f):

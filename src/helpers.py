@@ -1,6 +1,5 @@
 import networkx as nx
 import numpy as np
-from simplicial import *
 import gudhi as gd
 from scipy.stats import bernoulli
 
