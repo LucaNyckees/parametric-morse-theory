@@ -27,7 +27,7 @@ def stochastic_block_model(n: int, p: float, q: float, k: int) -> nx.Graph:
 
     G = nx.Graph()
     G.add_nodes_from(range(n))
-    for i in range(k):  # i \in {0,...,k-1}
+    for i in range(k):
         add_stochastic_community(interval1=(i, i + 1), interval2=(i, i + 1), proba=p, G=G)
 
     for c1 in range(k):
