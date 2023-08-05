@@ -18,8 +18,8 @@ def add_stochastic_community(interval1: tuple[int, int], interval2: tuple[int, i
     Note:
         Only edges are added with this procedure, not nodes.
     """
-    for i in range(interval1[0], interval1[1]):
-        for j in range(interval2[0], interval2[1]):
+    for i in range(int(interval1[0]), int(interval1[1])):
+        for j in range(int(interval2[0]), int(interval2[1])):
             if i < j and bernoulli.rvs(proba):
                 G.add_edge(i, j)
 

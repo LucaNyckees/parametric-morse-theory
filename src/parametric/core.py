@@ -153,7 +153,6 @@ def parametric_pipeline(
         time_step: float = 0.05,
         count: int = 12,
         noise: float = 0.05) -> list:
-
     list_dmts = build_function_series(G, functions, start, time_step, count, noise)
 
     C = list(map(lambda dmt: critical_cells(K=dmt['complex'], f=dmt['f']), list_dmts))
