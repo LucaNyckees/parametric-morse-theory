@@ -1,5 +1,5 @@
 import networkx as nx
-from discrete.core import V_paths, critical_cells, gradient
+from discrete.core import v_paths, critical_cells, gradient
 from helpers import get_skeleton, build_function_series
 
 
@@ -41,8 +41,8 @@ def are_connected(K, V, W, s1, s2):
         for simplex in k_simplices:
             # print(simplex)
 
-            for path1 in V_paths(K, V, s1, simplex):
-                for path2 in V_paths(K, W, simplex, s2):
+            for path1 in v_paths(K, V, s1, simplex):
+                for path2 in v_paths(K, W, simplex, s2):
                     if path1 == [s1] or path2 == [s2]:
                         # print("Path from {} to {} via the subpaths {} and {}.".format(
                         # s1,s2,path1,path2))
