@@ -1,30 +1,31 @@
 import networkx as nx
+from gudhi.simplex_tree import SimplexTree
+from itertools import product
+
 from discrete.core import v_paths, critical_cells, gradient
 from helpers import get_skeleton, build_function_series
 
 
-def right_dimension(path, k):
-    for i in range(len(path)):
-        if i % 2 == 0 and len(path[i]) != k + 1:
-            return False
-
-        if i % 2 == 1 and len(path[i]) != k:
-            return False
-
-    return True
-
-
-def are_connected(K, V, W, s1, s2):
+def has_correct_dims(path: list, k: int) -> bool:
     """
-    Arguments:
-        K : gudhi.SimplexTree
+    Returns True if path contains simplices of alternating dimensions k + 1 and k, else False.
+    """
+
+    even_indexed_checks = [len(s) == k + 1 for i, s in enumerate(path) if i % 2 == 0]
+    odd_indexed_checks = [len(s) == k for i, s in enumerate(path) if i % 2 == 1]
+    return all(even_indexed_checks + odd_indexed_checks)
+
+
+def are_connected(K: SimplexTree, V: list, W: list, s1: list, s2: list) -> bool:
+    """
+    Returns True if s1 and s2 are connected, False otherwise (according to def.3.1. of PMT).
+
+    Args:
+        K : simplicial complex
         V : list of pairs of cells
         W : list of pairs of cells
         s1 : cell critical for V
         s2 : cell critical for W
-    Returns:
-        True if s1 and s2 are connected,
-        False otherwise (according to def.3.1. of PMT).
     """
 
     if len(s1) != len(s2):
@@ -35,89 +36,69 @@ def are_connected(K, V, W, s1, s2):
 
     else:
         k = len(s1) - 1
-
-        k_simplices = [simplex[0] for simplex in get_skeleton(K, k)]
-
-        for simplex in k_simplices:
-            # print(simplex)
-
-            for path1 in v_paths(K, V, s1, simplex):
-                for path2 in v_paths(K, W, simplex, s2):
-                    if path1 == [s1] or path2 == [s2]:
-                        # print("Path from {} to {} via the subpaths {} and {}.".format(
-                        # s1,s2,path1,path2))
-
-                        return True
-
-                    elif right_dimension(path1, k) and right_dimension(path2, k + 1):
-                        # print("WE have a path from {} to {} via the subpaths {} and {}.".format(
-                        # s1,s2,path1,path2))
-
-                        return True
+        k_simplices = [s[0] for s in get_skeleton(K, k)]
+        for s in k_simplices:
+            v_paths1 = v_paths(K, V, s1, s)
+            v_paths2 = v_paths(K, W, s, s2)
+            if any([has_correct_dims(p1, k) and has_correct_dims(p2, k + 1) for p1, p2 in product(v_paths1, v_paths2)]):
+                return True
+            if any([p1 == [s1] or p2 == [s2] for p1, p2 in product(v_paths1, v_paths2)]):
+                return True
 
     return False
 
 
-def parametric(K, V, C, drawing=False):
-    "Returns a list of birth-death coordinates of all critical cells appearing along the sequence of DVFs on K."
+def parametric_coordinates(K: SimplexTree, V: list, C: list, drawing=False) -> list:
+    """
+    Returns a list of birth-death coordinates of all critical cells appearing in the sequence of DVFs on K.
+    """
 
-    temp_critical_cells = []
-    critical_cells = []
-    nb_slices = len(C)
+    temp_critical_cells = [[s, i] for i, s_ in enumerate(C) for s in s_]
+    critical_cells = temp_critical_cells.copy()
 
     coordinates = []
     full_coordinates = []
 
-    for i in range(nb_slices):
-        for s in C[i]:
-            temp_critical_cells.append([s, i])
-            critical_cells.append([s, i])
-
-    graph = abstract_diagram(K, V, C)
+    G = abstract_diagram(K, V, C)
 
     for indexed_cell in critical_cells:
         if indexed_cell in temp_critical_cells:
-            for node_ in graph.nodes:
-                if graph.nodes[node_]["index"] == indexed_cell:
+            for node_ in G.nodes:
+                if G.nodes[node_]["index"] == indexed_cell:
                     node = node_
                     break
 
-            magic_path = diagram_path(graph, node, nb_slices)
+            magic_path = diagram_path(G, node, len(C))
             time = indexed_cell[1]
 
             if len(magic_path) == 1:
                 coordinates.append([time, time])
                 full_coordinates.append([indexed_cell[0], time, time])
-                cell = graph.nodes[node_]["index"]
+                cell = G.nodes[node_]["index"]
                 if cell in temp_critical_cells:
                     temp_critical_cells.remove(cell)
 
             else:
                 for cell in magic_path:
-                    index_cell_ = graph.nodes[cell]["index"]
+                    index_cell_ = G.nodes[cell]["index"]
                     if index_cell_ in temp_critical_cells:
                         temp_critical_cells.remove(index_cell_)
 
                 coordinates.append([time, time + len(magic_path) - 1])
-                full_coordinates.append(
-                    [indexed_cell[0], time, time + len(magic_path) - 1]
-                )
+                full_coordinates.append([indexed_cell[0], time, time + len(magic_path) - 1])
 
     if drawing:
-        nx.draw(graph)
+        nx.draw(G)
 
     return [coordinates, full_coordinates]
 
 
-def per_time_slice(graph, i):
-    slice_nodes = [
-        node for node in list(graph.nodes) if graph.nodes[node]["index"][1] == i
-    ]
-
+def per_time_slice(G: nx.Graph, i: int) -> list:
+    slice_nodes = [v for v in list(G.nodes) if G.nodes[v]["index"][1] == i]
     return slice_nodes
 
 
-def abstract_diagram(K, V, C):
+def abstract_diagram(K: SimplexTree, V: list, C: list) -> nx.Graph:
     critical_cells = []
 
     for i in range(len(C)):
@@ -149,7 +130,7 @@ def abstract_diagram(K, V, C):
     return graph
 
 
-def diagram_path(graph, node, nb_slices):
+def diagram_path(graph: nx.Graph, node: int, nb_slices: int) -> list:
     path = [node]
     temp_node = node
 
@@ -165,16 +146,17 @@ def diagram_path(graph, node, nb_slices):
     return path
 
 
-def pipeline(G, functions=[], start=0, time_step=0.05, count=12, noise=0.05):
+def parametric_pipeline(
+        G: nx.Graph,
+        functions: list = [],
+        start: int = 0,
+        time_step: float = 0.05,
+        count: int = 12,
+        noise: float = 0.05) -> list:
+
     list_dmts = build_function_series(G, functions, start, time_step, count, noise)
 
-    C = []
-    V = []
+    C = list(map(lambda dmt: critical_cells(K=dmt['complex'], f=dmt['f']), list_dmts))
+    V = list(map(lambda dmt: gradient(K=dmt['complex'], f=dmt['f']), list_dmts))
 
-    for i in range(len(list_dmts)):
-        K = list_dmts[i]['complex']
-        f = list_dmts[i]['f']
-        C.append(critical_cells(K, f))
-        V.append(gradient(K, f))
-
-    return parametric(K, V, C)
+    return parametric_coordinates(K=list_dmts[-1]['complex'], V=V, C=C)

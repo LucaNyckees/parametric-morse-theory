@@ -53,7 +53,7 @@ def stochastic_block_model(n: int, p: float, q: float, k: int) -> nx.Graph:
     return G
 
 
-def build_complex_series(G: nx.Graph, functions: list, start: int, time_step: int, count: int) -> list:
+def build_complex_series(G: nx.Graph, functions: list, start: int, time_step: float, count: int) -> list:
     """
     Args:
         - G : networkX.Graph(), a graph
@@ -136,7 +136,7 @@ def build_morse_function(K: SimplexTree, d: int, g: dict, noise: float) -> dict:
 def build_function_series(G: nx.Graph,
                           functions: list,
                           start: int,
-                          time_step: int,
+                          time_step: float,
                           count: int,
                           noise: float) -> list[dict]:
     """

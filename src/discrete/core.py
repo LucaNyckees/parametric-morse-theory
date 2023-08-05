@@ -32,12 +32,11 @@ def is_morse_type(K: SimplexTree, f: dict) -> bool:
 
 def critical_cells(K: SimplexTree, f: dict) -> list:
     """
-    Returns the set of critical cells of (K,f) (in order of increasing dim).
+    Returns the set of critical cells of (K,f) (in order of increasing dimension).
 
-    Arguments:
-        K : gudhi.SimplexTree (simplicial complex)
-        f : dict (dictionary with labels on simplices, f is a DMT on K)
-    Return type : list
+    Args:
+        K : simplicial complex
+        f : dictionary with labels on simplices representing a discrete Morse function on K
     """
 
     C = []
