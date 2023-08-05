@@ -2,9 +2,13 @@ import networkx as nx
 import json
 
 
-def check_Morse(K, f):
+def is_morse_type(K, f):
     """
-    Returns a boolean value determining if f is a discrete Morse function on K.
+    Returns True if f is a discrete Morse function on K, else False.
+
+    Args:
+        - K: simplicial complex
+        - f: real-valued function defined on K
     """
 
     simplices = [simplex[0] for simplex in list(K.get_simplices())]
@@ -76,7 +80,7 @@ def gradient(K, f):
     return V
 
 
-def Hasse_diagram(K, V):
+def hasse_diagram(K, V):
     H = nx.DiGraph()
 
     simplices = [simplex[0] for simplex in list(K.get_simplices())]
@@ -96,7 +100,7 @@ def Hasse_diagram(K, V):
 
 
 def V_paths(K, V, s1, s2):
-    H = Hasse_diagram(K, V)
+    H = hasse_diagram(K, V)
 
     all_paths = list(nx.all_simple_paths(H, str(s1), str(s2)))
 
