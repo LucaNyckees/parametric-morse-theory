@@ -43,29 +43,23 @@ We further investigate the overall stability of the process outputting parametri
 
 <img width="436" alt="my_pipeline" src="https://raw.githubusercontent.com/LucaNyckees/ParametricMorseTheory/main/images/stability_analysis.png">
 
-## Virtual environment
+## Setup
 
 ---
 
-Use the following command lines to create and use venv python package:
+Use the following command to create a virtual environment and install python dependencies:
 
 ```
-python3.10 -m venv venv
+make
 ```
 
-Then use the following to activate the environment:
+You can activate the environment by running:
 
 ```
 source venv/bin/activate
 ```
 
-You can now use pip to install any packages you need for the project and run python scripts, usually through a `requirements.txt`:
-
-```
-python -m pip install -r requirements.txt
-```
-
-When you are finished, you can stop the environment by running:
+and stop the environment by running:
 
 ```
 deactivate
