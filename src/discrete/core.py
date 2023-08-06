@@ -1,15 +1,18 @@
 import networkx as nx
-from simplicial import *
 import json
-from helpers import *
+from gudhi.simplex_tree import SimplexTree
 
 
-def check_Morse(K, f):
+def is_morse_type(K: SimplexTree, f: dict) -> bool:
     """
-    Returns a boolean value determining if f is a discrete Morse function on K.
+    Returns True if f is a discrete Morse function on K, else False.
+
+    Args:
+        - K: simplicial complex
+        - f: real-valued function defined on K
     """
 
-    simplices = [simplex[0] for simplex in list(K.get_simplices())]
+    simplices = [s[0] for s in list(K.get_simplices())]
 
     for simplex in simplices:
         faces_1 = K.get_boundaries(simplex)
@@ -27,19 +30,18 @@ def check_Morse(K, f):
     return True
 
 
-def critical_cells(K, f):
+def critical_cells(K: SimplexTree, f: dict) -> list:
     """
-    Returns the set of critical cells of (K,f) (in order of increasing dim).
+    Returns the set of critical cells of (K,f) (in order of increasing dimension).
 
-    Arguments:
-        K : gudhi.SimplexTree (simplicial complex)
-        f : dict (dictionary with labels on simplices, f is a DMT on K)
-    Return type : list
+    Args:
+        K : simplicial complex
+        f : dictionary with labels on simplices representing a discrete Morse function on K
     """
 
     C = []
 
-    simplices = [simplex[0] for simplex in list(K.get_simplices())]
+    simplices = [s[0] for s in list(K.get_simplices())]
 
     for simplex in simplices:
         faces_1 = K.get_boundaries(simplex)
@@ -55,19 +57,19 @@ def critical_cells(K, f):
         if count_c == 0 and count_f == 0:
             C.append(simplex)
 
-        C = sorted(C, key=len)
+        C.sort(key=len)
 
     return C
 
 
-def gradient(K, f):
+def gradient(K: SimplexTree, f: dict) -> list:
     """
     Returns the gradient vector field of f (as a list of pairs of simplices).
     """
 
     V = []
 
-    simplices = [simplex[0] for simplex in list(K.get_simplices())]
+    simplices = [s[0] for s in list(K.get_simplices())]
 
     for simplex in simplices:
         cofaces_1 = K.get_cofaces(simplex, 1)
@@ -78,10 +80,10 @@ def gradient(K, f):
     return V
 
 
-def Hasse_diagram(K, V):
+def hasse_diagram(K: SimplexTree, V: list) -> nx.DiGraph:
     H = nx.DiGraph()
 
-    simplices = [simplex[0] for simplex in list(K.get_simplices())]
+    simplices = [s[0] for s in list(K.get_simplices())]
 
     for cell in simplices:
         H.add_node(str(cell))
@@ -97,11 +99,10 @@ def Hasse_diagram(K, V):
     return H
 
 
-def V_paths(K, V, s1, s2):
-    H = Hasse_diagram(K, V)
+def v_paths(K: SimplexTree, V: list, s1: list, s2: list) -> list:
 
+    H = hasse_diagram(K, V)
     all_paths = list(nx.all_simple_paths(H, str(s1), str(s2)))
-
     all_paths = [[json.loads(cell) for cell in path] for path in all_paths]
 
     if s1 == s2:
