@@ -1,53 +1,35 @@
-import matplotlib.pyplot as plt
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 
-plt.rcParams["figure.figsize"] = (10, 10)
 
+def plotly_persistence_diagram(coordinates: list) -> None:
 
-def plot_PD(coordinates):
     maximum = max([trio[2] for trio in coordinates])
 
-    coord_0 = [trio for trio in coordinates if len(trio[0]) == 1]
-    coord_1 = [trio for trio in coordinates if len(trio[0]) == 2]
-    coord_2 = [trio for trio in coordinates if len(trio[0]) == 3]
-    coord_3 = [trio for trio in coordinates if len(trio[0]) == 4]
+    fig = make_subplots(rows=2, cols=2, subplot_titles=("0-cells", "1-cells", "2-cells", "3-cells"),
+                        shared_xaxes=True, shared_yaxes=True)
 
-    births_0 = [trio[1] for trio in coord_0]
-    deaths_0 = [trio[2] for trio in coord_0]
-    births_1 = [trio[1] for trio in coord_1]
-    deaths_1 = [trio[2] for trio in coord_1]
-    births_2 = [trio[1] for trio in coord_2]
-    deaths_2 = [trio[2] for trio in coord_2]
-    births_3 = [trio[1] for trio in coord_3]
-    deaths_3 = [trio[2] for trio in coord_3]
+    for dim in range(4):
+        coord_dim = [trio for trio in coordinates if len(trio[0]) == dim + 1]
+        births_dim = [trio[1] for trio in coord_dim]
+        deaths_dim = [trio[2] for trio in coord_dim]
+        z = list(range(maximum + 1))
 
-    z = range(maximum + 1)
+        scatter_trace = go.Scatter(x=births_dim, y=deaths_dim, mode='markers',
+                                   marker=dict(color="royalblue"), name=f"{dim}-cells")
+        fig.add_trace(scatter_trace, row=(dim // 2) + 1, col=(dim % 2) + 1)
 
-    fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, sharex=True, sharey=True)
+        diagonal_trace = go.Scatter(x=z, y=z, mode='lines', line=dict(color="dodgerblue"), showlegend=False)
+        fig.add_trace(diagonal_trace, row=(dim // 2) + 1, col=(dim % 2) + 1)
 
-    ax1.scatter(births_0, deaths_0, color="skyblue", alpha=0.5)
-    ax1.plot(z, z, color="orange")
-    ax1.set_title("0-cells")
-    ax2.scatter(births_1, deaths_1, color="skyblue", alpha=0.5)
-    ax2.plot(z, z, color="orange")
-    ax2.set_title("1-cells")
-    ax3.scatter(births_2, deaths_2, color="skyblue", alpha=0.5)
-    ax3.plot(z, z, color="orange")
-    ax3.set_title("2-cells")
-    ax4.scatter(births_3, deaths_3, color="skyblue", alpha=0.5)
-    ax4.plot(z, z, color="orange")
-    ax4.set_title("3-cells")
-    fig.suptitle("Life coordinates of critical cells")
+        for i in range(len(coord_dim)):
+            line_trace = go.Scatter(x=[births_dim[i], births_dim[i]], y=[births_dim[i], deaths_dim[i]],
+                                    mode='lines', line=dict(color="darkviolet", dash="dot"), showlegend=False)
+            fig.add_trace(line_trace, row=(dim // 2) + 1, col=(dim % 2) + 1)
 
-    for i in range(len(coord_0)):
-        ax1.plot([births_0[i], births_0[i]], [births_0[i], deaths_0[i]], "m--")
-
-    for i in range(len(coord_1)):
-        ax2.plot([births_1[i], births_1[i]], [births_1[i], deaths_1[i]], "m--")
-
-    for i in range(len(coord_2)):
-        ax3.plot([births_2[i], births_2[i]], [births_2[i], deaths_2[i]], "m--")
-
-    for i in range(len(coord_3)):
-        ax4.plot([births_3[i], births_3[i]], [births_3[i], deaths_3[i]], "m--")
-
-    plt.show()
+    fig.update_layout(title_text="Life coordinates of critical cells", height=600, width=800)
+    fig.update_xaxes(title_text="Births", row=2, col=1)
+    fig.update_yaxes(title_text="Deaths", row=2, col=1)
+    fig.update_yaxes(title_text="Deaths", row=1, col=1)
+    fig.update_xaxes(title_text="Births", row=2, col=2)
+    fig.show()
